@@ -2,15 +2,23 @@
 
 Laravel alapú orvosi időpontfoglaló REST API.
 
-## Technológiák
+## Követelmények
 
-* PHP 8.3
-* Laravel 11
-* SQLite
+- PHP 8.3+
+- Composer
+- SQLite 3
 
 ## Telepítés
 
-Projekt klónozása után:
+Repository klónozása:
+
+```bash
+git clone https://github.com/vencsimre-ev/appointment-api.git
+
+cd appointment-api
+```
+
+Függőségek telepítése:
 
 ```bash
 composer install
