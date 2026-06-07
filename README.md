@@ -30,7 +30,7 @@ DB_DATABASE=database/database.sqlite
 Migrációk futtatása:
 
 ```bash
-php artisan migrate
+php artisan migrate:fresh --seed
 ```
 
 Alkalmazás indítása:
