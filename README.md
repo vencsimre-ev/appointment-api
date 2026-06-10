@@ -115,6 +115,18 @@ Foglalások kezelése és státuszváltások.
 * Egy páciensnek nem lehet átfedő foglalása
 * A foglalás kezdeti állapota: `pending`
 
+### Slot alapú foglalás
+
+A rendszer slot alapú foglalást használ.
+
+A foglalás végidejét a rendszer automatikusan számolja a rendelési időhöz tartozó `slot_duration_minutes` alapján.
+
+A foglalás:
+
+- csak slot elején kezdődhet,
+- több egymást követő slotot is lefoglalhat (`slot_count`),
+- nem lóghat ki az orvos rendelési idejéből.
+
 ### Állapotátmenetek
 
 ```text
@@ -188,6 +200,90 @@ pending
 confirmed
 completed
 cancelled
+```
+
+## Példa requestek
+
+### Orvos létrehozása
+
+POST /api/doctors
+
+```json
+{
+    "name": "Dr. House",
+    "email": "house@example.com",
+    "specialization": "Diagnosztika"
+}
+```
+
+### Páciens létrehozása
+
+POST /api/patients
+
+```json
+{
+    "name": "Teszt Páciens",
+    "email": "patient@example.com",
+    "phone": "+36301234567"
+}
+```
+
+### Rendelési idő létrehozása
+
+POST /api/availabilities
+
+```json
+{
+    "doctor_id": 1,
+    "starts_at": "2026-06-20 09:00:00",
+    "ends_at": "2026-06-20 12:00:00",
+    "slot_duration_minutes": 30
+}
+```
+
+### Időpont foglalása
+
+POST /api/appointments
+
+```json
+{
+    "patient_id": 1,
+    "doctor_id": 1,
+    "start_time": "2026-06-20 10:00:00"
+}
+```
+
+Több slot foglalása:
+
+```json
+{
+    "patient_id": 1,
+    "doctor_id": 1,
+    "start_time": "2026-06-20 10:00:00",
+    "slot_count": 2
+}
+```
+
+### Foglalás megerősítése
+
+PATCH /api/appointments/{appointment}/confirm
+
+Nincs request body.
+
+### Foglalás lezárása
+
+PATCH /api/appointments/{appointment}/complete
+
+Nincs request body.
+
+### Foglalás lemondása
+
+PATCH /api/appointments/{appointment}/cancel
+
+```json
+{
+    "reason": "Patient requested cancellation."
+}
 ```
 
 ## Példa válaszok

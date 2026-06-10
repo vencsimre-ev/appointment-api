@@ -13,15 +13,23 @@ class AppointmentService
     public function create(array $data): Appointment
     {
         $startTime = Carbon::parse($data['start_time']);
-        $endTime = Carbon::parse($data['end_time']);
+        $slotCount = $data['slot_count'] ?? 1;
 
         if ($startTime->isPast()) {
             throw new BusinessRuleException('Appointment must be in the future.');
         }
 
-        if (! $this->isInsideAvailability($data['doctor_id'], $startTime, $endTime)) {
-            throw new BusinessRuleException('Appointment is outside doctor availability.');
-        }
+        $availability = $this->checkAvailabilityForAppointment(
+            $data['doctor_id'],
+            $startTime,
+            $slotCount
+        );
+
+        $endTime = $this->calculateEndTime(
+            $availability,
+            $startTime,
+            $slotCount
+        );
 
         if ($this->doctorHasOverlappingAppointment($data['doctor_id'], $startTime, $endTime)) {
             throw new BusinessRuleException('This slot is already booked.');
@@ -31,7 +39,9 @@ class AppointmentService
             throw new BusinessRuleException('Patient already has an appointment at this time.');
         }
 
-        // default status
+        unset($data['slot_count']);
+
+        $data['end_time'] = $endTime;
         $data['status'] = AppointmentStatus::Pending;
 
         return Appointment::create($data);
@@ -90,18 +100,6 @@ class AppointmentService
         return $appointment->fresh();
     }
 
-    private function isInsideAvailability(
-        int $doctorId,
-        Carbon $startTime,
-        Carbon $endTime
-    ): bool {
-        return Availability::query()
-            ->where('doctor_id', $doctorId)
-            ->where('starts_at', '<=', $startTime)
-            ->where('ends_at', '>=', $endTime)
-            ->exists();
-    }
-
     private function doctorHasOverlappingAppointment(
         int $doctorId,
         Carbon $startTime,
@@ -127,4 +125,55 @@ class AppointmentService
             ->where('end_time', '>', $startTime)
             ->exists();
     }
+
+    private function checkAvailabilityForAppointment(
+        int $doctorId,
+        Carbon $startTime,
+        int $slotCount
+    ): Availability {
+        $availability = Availability::query()
+            ->where('doctor_id', $doctorId)
+            ->where('starts_at', '<=', $startTime)
+            ->where('ends_at', '>', $startTime)
+            ->first();
+
+        if (! $availability) {
+            throw new BusinessRuleException('Appointment is outside doctor availability.');
+        }
+
+        if (! $this->isValidSlotStartTime($availability, $startTime)) {
+            throw new BusinessRuleException('Appointment must start at the beginning of an available slot.');
+        }
+
+        $endTime = $this->calculateEndTime($availability, $startTime, $slotCount);
+
+        if ($endTime->greaterThan($availability->ends_at)) {
+            throw new BusinessRuleException('Appointment exceeds doctor availability.');
+        }
+
+        return $availability;
+    }
+
+    private function isValidSlotStartTime(
+        Availability $availability, 
+        Carbon $startTime
+    ): bool {
+        $minutesSinceAvailabilityStart = $availability
+            ->starts_at
+            ->diffInMinutes($startTime);
+
+        return $minutesSinceAvailabilityStart
+            % $availability->slot_duration_minutes === 0;
+    }
+
+    private function calculateEndTime(
+        Availability $availability,
+        Carbon $startTime,
+        int $slotCount
+    ): Carbon {
+        return $startTime->copy()->addMinutes(
+            $availability->slot_duration_minutes * $slotCount
+        );
+    }
+    
 }

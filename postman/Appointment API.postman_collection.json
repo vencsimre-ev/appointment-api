@@ -270,14 +270,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{DOMAIN}}/api/doctors/1/availabilities",
+              "raw": "{{DOMAIN}}/api/doctors/2/availabilities",
               "host": [
                 "{{DOMAIN}}"
               ],
               "path": [
                 "api",
                 "doctors",
-                "1",
+                "2",
                 "availabilities"
               ]
             }
@@ -291,7 +291,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"doctor_id\":1,\r\n    \"starts_at\":\"2026-06-16 08:00:00\",\r\n    \"ends_at\":\"2026-06-16 09:00:00\",\r\n    \"slot_duration_minutes\":60\r\n}",
+              "raw": "{\r\n    \"doctor_id\":2,\r\n    \"starts_at\":\"2026-06-17 08:00:00\",\r\n    \"ends_at\":\"2026-06-17 19:00:00\",\r\n    \"slot_duration_minutes\":30\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -322,14 +322,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{DOMAIN}}/api/patients/1/appointments",
+              "raw": "{{DOMAIN}}/api/patients/2/appointments",
               "host": [
                 "{{DOMAIN}}"
               ],
               "path": [
                 "api",
                 "patients",
-                "1",
+                "2",
                 "appointments"
               ]
             }
@@ -343,7 +343,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"patient_id\":1,\r\n    \"doctor_id\":1,\r\n    \"start_time\":\"2026-06-16 11:20:00\",\r\n    \"end_time\":\"2026-06-16 11:30:00\"\r\n}",
+              "raw": "{\r\n    \"patient_id\":2,\r\n    \"doctor_id\":2,\r\n    \"start_time\":\"2026-06-17 18:00:00\",\r\n    \"slot_count\": 2\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -368,6 +368,15 @@
           "request": {
             "method": "PATCH",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"cancellation_reason\":\"Érvénytelen időpontfoglalás\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
               "raw": "{{DOMAIN}}/api/appointments/1/cancel",
               "host": [
@@ -389,14 +398,14 @@
             "method": "PATCH",
             "header": [],
             "url": {
-              "raw": "{{DOMAIN}}/api/appointments/1/confirm",
+              "raw": "{{DOMAIN}}/api/appointments/2/confirm",
               "host": [
                 "{{DOMAIN}}"
               ],
               "path": [
                 "api",
                 "appointments",
-                "1",
+                "2",
                 "confirm"
               ]
             }
@@ -408,15 +417,24 @@
           "request": {
             "method": "PATCH",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
-              "raw": "{{DOMAIN}}/api/appointments/1/complete",
+              "raw": "{{DOMAIN}}/api/appointments/2/complete",
               "host": [
                 "{{DOMAIN}}"
               ],
               "path": [
                 "api",
                 "appointments",
-                "1",
+                "2",
                 "complete"
               ]
             }

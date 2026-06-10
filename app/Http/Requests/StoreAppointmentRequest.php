@@ -21,7 +21,7 @@ class StoreAppointmentRequest extends FormRequest
             'patient_id' => ['required', Rule::exists('patients', 'id')],
             'doctor_id' => ['required', Rule::exists('doctors', 'id')],
             'start_time' => ['required', 'date'],
-            'end_time' => ['required', 'date', 'after:start_time'],
+            'slot_count' => ['sometimes', 'integer', 'min:1'],
         ];
     }
 }
