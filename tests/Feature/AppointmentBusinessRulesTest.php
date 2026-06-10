@@ -137,4 +137,114 @@ class AppointmentBusinessRulesTest extends TestCase
                 'message' => 'Confirmed appointments can only be cancelled at least 24 hours before start time.',
             ]);
     }
+
+    public function test_appointment_cannot_start_before_doctor_availability(): void
+    {
+        $doctor = Doctor::factory()->create();
+        $patient = Patient::factory()->create();
+
+        Availability::factory()->create([
+            'doctor_id' => $doctor->id,
+            'starts_at' => now()->addDays(3)->setTime(9, 0),
+            'ends_at' => now()->addDays(3)->setTime(12, 0),
+            'slot_duration_minutes' => 30,
+        ]);
+
+        $response = $this->postJson('/api/appointments', [
+            'doctor_id' => $doctor->id,
+            'patient_id' => $patient->id,
+            'start_time' => now()->addDays(3)->setTime(8, 30)->toDateTimeString(),
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'status' => 'error',
+                'message' => 'Appointment is outside doctor availability.',
+            ]);
+    }
+
+    public function test_appointment_cannot_start_in_the_middle_of_a_slot(): void
+    {
+        $doctor = Doctor::factory()->create();
+        $patient = Patient::factory()->create();
+
+        Availability::factory()->create([
+            'doctor_id' => $doctor->id,
+            'starts_at' => now()->addDays(3)->setTime(9, 0),
+            'ends_at' => now()->addDays(3)->setTime(12, 0),
+            'slot_duration_minutes' => 30,
+        ]);
+
+        $response = $this->postJson('/api/appointments', [
+            'doctor_id' => $doctor->id,
+            'patient_id' => $patient->id,
+            'start_time' => now()->addDays(3)->setTime(9, 20)->toDateTimeString(),
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'status' => 'error',
+                'message' => 'Appointment must start at the beginning of an available slot.',
+            ]);
+    }
+
+    public function test_appointment_cannot_exceed_doctor_availability(): void
+    {
+        $doctor = Doctor::factory()->create();
+        $patient = Patient::factory()->create();
+
+        Availability::factory()->create([
+            'doctor_id' => $doctor->id,
+            'starts_at' => now()->addDays(3)->setTime(9, 0),
+            'ends_at' => now()->addDays(3)->setTime(12, 0),
+            'slot_duration_minutes' => 30,
+        ]);
+
+        $response = $this->postJson('/api/appointments', [
+            'doctor_id' => $doctor->id,
+            'patient_id' => $patient->id,
+            'start_time' => now()->addDays(3)->setTime(11, 30)->toDateTimeString(),
+            'slot_count' => 2,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'status' => 'error',
+                'message' => 'Appointment exceeds doctor availability.',
+            ]);
+    }
+
+    public function test_appointment_cannot_overlap_another_appointment(): void
+    {
+        $doctor = Doctor::factory()->create();
+        $patient = Patient::factory()->create();
+        $anotherPatient = Patient::factory()->create();
+
+        Availability::factory()->create([
+            'doctor_id' => $doctor->id,
+            'starts_at' => now()->addDays(3)->setTime(9, 0),
+            'ends_at' => now()->addDays(3)->setTime(12, 0),
+            'slot_duration_minutes' => 30,
+        ]);
+
+        Appointment::factory()->create([
+            'doctor_id' => $doctor->id,
+            'patient_id' => $patient->id,
+            'start_time' => now()->addDays(3)->setTime(10, 0),
+            'end_time' => now()->addDays(3)->setTime(11, 0),
+            'status' => AppointmentStatus::Pending,
+        ]);
+
+        $response = $this->postJson('/api/appointments', [
+            'doctor_id' => $doctor->id,
+            'patient_id' => $anotherPatient->id,
+            'start_time' => now()->addDays(3)->setTime(10, 30)->toDateTimeString(),
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'status' => 'error',
+                'message' => 'This slot is already booked.',
+            ]);
+    }
 }
