@@ -13,7 +13,6 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // --- Doctor ---
         $doctor1 = Doctor::create([
             'name' => 'Dr. House',
             'email' => 'house@example.com',
@@ -26,8 +25,9 @@ class DemoDataSeeder extends Seeder
             'specialization' => 'Sebészet',
         ]);
 
-        // --- Patient ---
-        Patient::create([
+        Doctor::factory()->count(13)->create();
+
+        $patient1 = Patient::create([
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'phone' => '+36111111',
@@ -45,7 +45,8 @@ class DemoDataSeeder extends Seeder
             'phone' => '+36333333',
         ]);
 
-        // --- Availability ---
+        Patient::factory()->count(12)->create();
+
         Availability::create([
             'doctor_id' => $doctor1->id,
             'starts_at' => now()->addDays(1)->setTime(9, 0),
@@ -65,11 +66,10 @@ class DemoDataSeeder extends Seeder
             'starts_at' => now()->addDays(1)->setTime(8, 0),
             'ends_at' => now()->addDays(1)->setTime(11, 0),
             'slot_duration_minutes' => 60,
-        ]);     
-        
-        // --- Appointment ---
+        ]);
+
         Appointment::create([
-            'patient_id' => 1,
+            'patient_id' => $patient1->id,
             'doctor_id' => $doctor1->id,
             'start_time' => now()->addDays(1)->setTime(9, 0),
             'end_time' => now()->addDays(1)->setTime(9, 30),

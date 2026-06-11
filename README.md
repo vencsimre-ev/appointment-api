@@ -35,7 +35,7 @@ DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
 ```
 
-Migrációk futtatása:
+Migrációk és demo adatok futtatása:
 
 ```bash
 php artisan migrate:fresh --seed
