@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDoctorRequest;
 use App\Http\Requests\UpdateDoctorRequest;
-use App\Http\Resources\DoctorCollection;
 use App\Http\Resources\DoctorResource;
+use App\Http\Responses\ApiResponse;
 use App\Models\Doctor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -19,51 +19,45 @@ class DoctorController extends Controller
             ->orderBy('name')
             ->paginate(5);
 
-        return (new DoctorCollection($doctors))->response();
+        return ApiResponse::paginated(
+            'Doctors retrieved successfully.',
+            DoctorResource::collection($doctors)
+        );
     }
 
     public function store(StoreDoctorRequest $request): JsonResponse
     {
         $doctor = Doctor::create($request->validated());
 
-        return (new DoctorResource($doctor))
-            ->additional([
-                'status' => 'success',
-                'message' => 'Doctor created successfully.',
-            ])
-            ->response()
-            ->setStatusCode(Response::HTTP_CREATED);
+        return ApiResponse::success(
+            'Doctor created successfully.',
+            new DoctorResource($doctor),
+            Response::HTTP_CREATED
+        );
     }
 
     public function show(Doctor $doctor): JsonResponse
     {
-        return (new DoctorResource($doctor))
-            ->additional([
-                'status' => 'success',
-                'message' => 'Doctor retrieved successfully.',
-            ])
-            ->response();
+        return ApiResponse::success(
+            'Doctor retrieved successfully.',
+            new DoctorResource($doctor)
+        );
     }
 
     public function update(UpdateDoctorRequest $request, Doctor $doctor): JsonResponse
     {
         $doctor->update($request->validated());
 
-        return (new DoctorResource($doctor->fresh()))
-            ->additional([
-                'status' => 'success',
-                'message' => 'Doctor updated successfully.',
-            ])
-            ->response();
+        return ApiResponse::success(
+            'Doctor updated successfully.',
+            new DoctorResource($doctor->fresh())
+        );
     }
 
     public function destroy(Doctor $doctor): JsonResponse
     {
         $doctor->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Doctor deleted successfully.',
-        ]);
+        return ApiResponse::success('Doctor deleted successfully.');
     }
 }

@@ -16,7 +16,7 @@ class UpdatePatientRequest extends FormRequest
     public function rules(): array
     {
         /** @var Patient|null $patient */
-        $patient = $this->route('patient');        $patient = $this->route('patient');
+        $patient = $this->route('patient');
 
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
